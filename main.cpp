@@ -26,7 +26,8 @@ void insert_trie(string s,int id){
 		}
 		cur = cur->kv[ci];
 	}
-	cur->ids.push_back(id);
+	if(cur->ids[cur->ids.size()-1]!=id)
+		cur->ids.push_back(id);
 }
 /*
 void dump_trie_rec(int indent, Trie_node* p){
@@ -37,6 +38,54 @@ void dump_trie(){
 	dump_trie_rec(0,&root);
 }
 */
+void init_buf(){
+	for(int i=0;i<200;i++){
+		buf[0][i]=i;
+		buf[i][0]=i;
+	}
+}
+vector<pair<int,int> > ed_get(string pattern, string text){
+	vector<pair<int,int> > res;
+	int tao = 2;
+	int pl = pattern.size();
+	int tl = text.size();
+	if(pl==0){
+		for(int i=0;i<=tao;i++)
+			res.push_back(pair(i,i));
+		return res;
+	}
+	for(int j=1;j<=pl;i++){
+		int st = max(j-tao+1,0);
+		int ed = min(tl,j+tao-1);
+		if(j-tao>=1)
+			buf[j-tao][j]=tao;
+		for(int i=st;i<=ed;i++){
+			if(pattern[j]==text[i])
+				buf[i][j]=buf[i-1][j-1];
+			else{
+				buf[i][j]=min(buf[i-1][j-1]+1,min(buf[i-1][j]+1,buf[i][j-1]+1));
+			}
+		}
+		if(ed<tl)
+			buf[ed+1][j]=tao;
+		bool b = true;
+		for(int i=st;i<ed;i++){
+			if(buf[i][j]<=tao){
+				b = false;
+				break;
+			}
+		}
+		if(b)
+			return res;
+	}
+	for(int i=max(0,j-tao+1);i<=min(tl,j+tao-1);i++){
+		if(buf[i][pl]<=tao)
+			res.push_back(pair(i,buf[i][pl]));
+	}
+	return res;
+}
+int buf[200][200];
+vector<string> es;
 int main(int argc,char** argv){
 	if(argc!=3){
 		puts("exe doc entity")
@@ -52,6 +101,7 @@ int main(int argc,char** argv){
 	int min_len = 19920211;
 	int max_len = -19941204;
 	while(entity_fs>>e){
+		es.push_back(es);
 		int l = e.size();//3 3 2
 		if(l<min_len)
 			min_len = l;
@@ -81,10 +131,22 @@ int main(int argc,char** argv){
 			doc_id += 1;
 			continue;
 		}
+		vector<int> candidates;
 		for(int i=0;i<l;i++){
 			int start_pos = i;
 			Trie_node* cur = &root;
 			for(int j=i;j<l;j++){
+				if(cur->ids.size()!=0){
+					for(int k=0;k<cur->ids.size();k++){
+						 string can = es[cur->ids[k]];
+						 string tp_seg = d.substr(i,j);
+						 int loc;
+						 while((loc=can.find(tp_seg))!=-1){
+							 string left = can.substr(0,loc);
+							 string right = can.substr(loc+tp_seg.size());
+
+
+				}
 				char c = d[j];
 				unsigned int ci = (unsigned char)c;
 				if(cur->kv[ci]==NULL)
@@ -92,5 +154,5 @@ int main(int argc,char** argv){
 				else{
 					cur = cur->kv[ci];
 				}
-			} 	
-	
+			}
+				
