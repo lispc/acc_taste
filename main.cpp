@@ -3,6 +3,8 @@
 #include<fstream>
 #include<cstdlib>
 #include<cstring>
+#include<vector>
+#include<utility>
 using namespace std;
 struct Trie_node{
 	Trie_node(){
@@ -12,7 +14,7 @@ struct Trie_node{
 	char c;
 	Trie_node* kv[256];
 	vector<int> ids;
-}
+};
 Trie_node root;
 void insert_trie(string s,int id){
 	int l = s.size();
@@ -38,6 +40,7 @@ void dump_trie(){
 	dump_trie_rec(0,&root);
 }
 */
+int buf[200][200];
 void init_buf(){
 	for(int i=0;i<200;i++){
 		buf[0][i]=i;
@@ -51,25 +54,27 @@ vector<pair<int,int> > ed_get(string pattern, string text){
 	int tl = text.size();
 	if(pl==0){
 		for(int i=0;i<=tao;i++)
-			res.push_back(pair(i,i));
+			res.push_back(make_pair(i,i));
 		return res;
 	}
-	for(int j=1;j<=pl;i++){
-		int st = max(j-tao+1,0);
-		int ed = min(tl,j+tao-1);
-		if(j-tao>=1)
-			buf[j-tao][j]=tao;
+	for(int j=1;j<=pl;j++){
+		int st = max(j-tao,1);
+		int ed = min(tl,j+tao);
+		fprintf(stderr,"st=%d ed=%d\n",st,ed);
+		if(j-tao-1>=1)
+			buf[j-tao-1][j]=tao+1;
 		for(int i=st;i<=ed;i++){
-			if(pattern[j]==text[i])
+			if(pattern[j-1]==text[i-1])
 				buf[i][j]=buf[i-1][j-1];
 			else{
 				buf[i][j]=min(buf[i-1][j-1]+1,min(buf[i-1][j]+1,buf[i][j-1]+1));
 			}
+			fprintf(stderr,"setting buf[%d][%d] to %d\n",i,j,buf[i][j]);
 		}
 		if(ed<tl)
-			buf[ed+1][j]=tao;
+			buf[ed+1][j]=tao+1;
 		bool b = true;
-		for(int i=st;i<ed;i++){
+		for(int i=st;i<=ed;i++){
 			if(buf[i][j]<=tao){
 				b = false;
 				break;
@@ -78,14 +83,38 @@ vector<pair<int,int> > ed_get(string pattern, string text){
 		if(b)
 			return res;
 	}
-	for(int i=max(0,j-tao+1);i<=min(tl,j+tao-1);i++){
+	for(int i=max(0,pl-tao);i<=min(tl,pl+tao);i++){
+		cerr<<"buf["<<i<<"]["<<pl<<"]="<<buf[i][pl]<<endl;
 		if(buf[i][pl]<=tao)
-			res.push_back(pair(i,buf[i][pl]));
+			res.push_back(make_pair(i,buf[i][pl]));
 	}
 	return res;
 }
-int buf[200][200];
-vector<string> es;
+int main(){
+	init_buf();
+	vector<pair<string,string> > data;
+	data.push_back(make_pair("a","asd"));//"" a as asd
+	data.push_back(make_pair("","asd"));//"" a as
+	data.push_back(make_pair("b","asd"));//"" a as
+	data.push_back(make_pair("a","asdfg"));//"" a as asd
+	data.push_back(make_pair("asd","a"));//a
+	for(int i=0;i<data.size();i++){
+		cout<<"="<<endl;
+		string p = data[i].first;
+		string t = data[i].second;
+		vector<pair<int,int> > r = ed_get(p,t);
+		cout<<"=="<<endl;
+		for(int j=0;j<r.size();j++){
+			int pos = r[j].first;
+			int dis = r[j].second;
+			cout<<t.substr(0,pos)<<" "<<dis<<endl;
+		}
+		cout<<"==="<<endl;
+	}
+}
+
+//vector<string> es;
+/*
 int main(int argc,char** argv){
 	if(argc!=3){
 		puts("exe doc entity")
@@ -146,6 +175,7 @@ int main(int argc,char** argv){
 							 string right = can.substr(loc+tp_seg.size());
 
 
+
 				}
 				char c = d[j];
 				unsigned int ci = (unsigned char)c;
@@ -155,4 +185,4 @@ int main(int argc,char** argv){
 					cur = cur->kv[ci];
 				}
 			}
-				
+			*/	
